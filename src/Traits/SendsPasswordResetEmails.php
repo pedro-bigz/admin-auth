@@ -77,15 +77,9 @@ trait SendsPasswordResetEmails
      */
     protected function sendResetLinkFailedResponse(Request $request, string $response): RedirectResponse|JsonResponse
     {
-        if ($request->wantsJson()) {
-            throw ValidationException::withMessages([
-                'email' => [trans($response)],
-            ]);
-        }
-
-        return back()
-            ->withInput($request->only('email'))
-            ->withErrors(['email' => trans($response)]);
+        throw ValidationException::withMessages([
+            'email' => [trans($response)],
+        ]);
     }
 
     /**

@@ -43,14 +43,6 @@ class AdminAuthInstall extends Command
             '--provider' => "Brackets\\AdminAuth\\Activation\\Providers\\ActivationServiceProvider",
         ]);
 
-        $this->strReplaceInFile(
-            resource_path('views/admin/layout/profile-dropdown.blade.php'),
-            '|url\(\'admin\/logout\'\)|',
-            '{{-- Do not delete me :) I\'m used for auto-generation menu items --}}',
-            '{{-- Do not delete me :) I\'m used for auto-generation menu items --}}
-    <a href="{{ url(\'admin/logout\') }}" class="dropdown-item"><i class="fa fa-lock"></i> {{ trans(\'brackets/admin-auth::admin.profile_dropdown.logout\') }}</a>'
-        );
-
         $this->appendAdminAuthToAuthConfig();
 
         $this->call('migrate');
@@ -92,7 +84,7 @@ class AdminAuthInstall extends Command
             '\'guards\' => [',
             '\'guards\' => [
         \'admin\' => [
-            \'driver\' => \'session\',
+            \'driver\' => \'jwt\',
             \'provider\' => \'admin_users\',
         ],
         '

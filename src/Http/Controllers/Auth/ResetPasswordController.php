@@ -2,19 +2,16 @@
 
 namespace Brackets\AdminAuth\Http\Controllers\Auth;
 
-use Brackets\AdminAuth\Http\Controllers\Controller;
-use Brackets\AdminAuth\Traits\ResetsPasswords;
-use Illuminate\Contracts\Auth\CanResetPassword;
-use Illuminate\Contracts\Auth\PasswordBroker as PasswordBrokerContract;
-use Illuminate\Contracts\Auth\StatefulGuard;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Contracts\Auth\StatefulGuard;
+use Brackets\AdminAuth\Traits\ResetsPasswords;
+use Illuminate\Contracts\Auth\CanResetPassword;
+use Brackets\AdminAuth\Http\Controllers\Controller;
+use Illuminate\Contracts\Auth\PasswordBroker as PasswordBrokerContract;
 
 class ResetPasswordController extends Controller
 {
@@ -30,13 +27,6 @@ class ResetPasswordController extends Controller
     */
 
     use ResetsPasswords;
-
-    /**
-     * Where to redirect users after resetting their password.
-     *
-     * @var string
-     */
-    protected mixed $redirectTo = '/';
 
     /**
      * Guard used for admin user
@@ -61,24 +51,7 @@ class ResetPasswordController extends Controller
     {
         $this->guard = config('admin-auth.defaults.guard');
         $this->passwordBroker = config('admin-auth.defaults.passwords');
-        $this->redirectTo = config('admin-auth.password_reset_redirect');
         $this->middleware('guest.admin:' . $this->guard);
-    }
-
-    /**
-     * Display the password reset view for the given token.
-     *
-     * If no token is present, display the link request form.
-     *
-     * @param Request $request
-     * @param string|null $token
-     * @return View
-     */
-    public function showResetForm(Request $request, string $token = null): View
-    {
-        return view('brackets/admin-auth::admin.auth.passwords.reset')->with(
-            ['token' => $token, 'email' => $request->email]
-        );
     }
 
     /**
@@ -88,7 +61,7 @@ class ResetPasswordController extends Controller
      * @param string $password
      * @return void
      */
-    protected function resetPassword($user, $password): void
+    protected function resetPassword(CanResetPassword $user, $password): void
     {
         $user->forceFill([
             'password' => bcrypt($password),
@@ -96,7 +69,7 @@ class ResetPasswordController extends Controller
         ])->save();
 
         if ($this->loginCheck($user)) {
-            $this->guard()->login($user);
+            $this->guard($this->guard)->login($user);
         }
     }
 

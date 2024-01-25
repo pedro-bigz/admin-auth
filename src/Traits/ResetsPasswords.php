@@ -2,40 +2,22 @@
 
 namespace Brackets\AdminAuth\Traits;
 
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Contracts\Auth\CanResetPassword;
-use Illuminate\Contracts\Auth\PasswordBroker;
-use Illuminate\Contracts\Auth\StatefulGuard;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Contracts\Auth\PasswordBroker;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Contracts\Auth\CanResetPassword;
 
 trait ResetsPasswords
 {
-    use RedirectsUsers;
-
-    /**
-     * Display the password reset view for the given token.
-     *
-     * If no token is present, display the link request form.
-     *
-     * @param Request $request
-     * @param string|null $token
-     * @return View
-     */
-    public function showResetForm(Request $request, string $token = null): View
-    {
-        return view('auth.passwords.reset')->with(
-            ['token' => $token, 'email' => $request->email]
-        );
-    }
-
     /**
      * Reset the given user's password.
      *
@@ -51,8 +33,8 @@ trait ResetsPasswords
         // database. Otherwise we will parse the error and return the response.
         $response = $this->broker()->reset(
             $this->credentials($request), function ($user, $password) {
-            $this->resetPassword($user, $password);
-        }
+                $this->resetPassword($user, $password);
+            }
         );
 
         // If the password was successfully reset, we will redirect the user back to
@@ -141,12 +123,7 @@ trait ResetsPasswords
      */
     protected function sendResetResponse(Request $request, string $response): RedirectResponse|JsonResponse
     {
-        if ($request->wantsJson()) {
-            return new JsonResponse(['message' => trans($response)], 200);
-        }
-
-        return redirect($this->redirectPath())
-            ->with('status', trans($response));
+        return new JsonResponse(['message' => trans($response)], 200);
     }
 
     /**
@@ -158,15 +135,9 @@ trait ResetsPasswords
      */
     protected function sendResetFailedResponse(Request $request, string $response): RedirectResponse|JsonResponse
     {
-        if ($request->wantsJson()) {
-            throw ValidationException::withMessages([
-                'email' => [trans($response)],
-            ]);
-        }
-
-        return redirect()->back()
-            ->withInput($request->only('email'))
-            ->withErrors(['email' => trans($response)]);
+        throw ValidationException::withMessages([
+            'email' => [trans($response)],
+        ]);
     }
 
     /**

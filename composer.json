@@ -31,7 +31,8 @@
         "brackets/admin-ui": "^4.0",
         "brackets/media": "^6.0|^7.0",
         "illuminate/support": "^8.0|^9.0|^10.0",
-        "spatie/laravel-permission": "^3.0|^4.0|^5.0|^5.10"
+        "spatie/laravel-permission": "^3.0|^4.0|^5.0|^5.10",
+        "tymon/jwt-auth": "^2.0"
     },
     "require-dev": {
         "orchestra/testbench": "~6.0|~7.0|^8.0",

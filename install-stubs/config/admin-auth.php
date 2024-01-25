@@ -9,10 +9,18 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'admin',
+        'guard' => 'api',
         'passwords' => 'admin_users',
         'activations' => 'admin_users',
     ],
+
+    /*
+    |
+    | This option controls if Login should check also forbidden key
+    |
+    */
+
+    'token_type' => env('TOKEN_TYPE', 'bearer'),
 
     /*
     |
@@ -29,51 +37,6 @@ return [
     */
 
     'activation_enabled' => env('ACTIVATION_ENABLED', false),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Login
-    |--------------------------------------------------------------------------
-    |
-    | This option controls the url for redirect after login
-    |
-    */
-
-    'login_redirect' => '/admin',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Logout
-    |--------------------------------------------------------------------------
-    |
-    | This option controls the url for redirect after logout
-    |
-    */
-
-    'logout_redirect' => '/admin/login',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Password reset
-    |--------------------------------------------------------------------------
-    |
-    | This option controls the url for redirect after password reset
-    |
-    */
-
-    'password_reset_redirect' => '/admin/login',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Activations
-    |--------------------------------------------------------------------------
-    |
-    | This options controls if activation is required or not
-    | And the activation redirect controls where to redirect after activation
-    |
-    */
-
-    'activation_redirect' => '/admin/login',
 
     /*
     |

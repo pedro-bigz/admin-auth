@@ -13,16 +13,6 @@ use Illuminate\Validation\ValidationException;
 trait SendsPasswordResetEmails
 {
     /**
-     * Display the form to request a password reset link.
-     *
-     * @return View
-     */
-    public function showLinkRequestForm(): View
-    {
-        return view('auth.passwords.email');
-    }
-
-    /**
      * Send a reset link to the given user.
      *
      * @param Request $request
@@ -75,9 +65,7 @@ trait SendsPasswordResetEmails
      */
     protected function sendResetLinkResponse(Request $request, string $response): RedirectResponse|JsonResponse
     {
-        return $request->wantsJson()
-            ? new JsonResponse(['message' => trans($response)], 200)
-            : back()->with('status', trans($response));
+        return new JsonResponse(['message' => trans($response)], 200);
     }
 
     /**

@@ -17,12 +17,13 @@ use Spatie\Image\Exceptions\InvalidManipulation;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 /**
  * @property mixed first_name
  * @property mixed last_name
  */
-class AdminUser extends Authenticatable implements CanActivateContract, HasMedia
+class AdminUser extends Authenticatable implements CanActivateContract, HasMedia, JWTSubject
 {
     use Notifiable;
     use CanActivate;
@@ -156,4 +157,28 @@ class AdminUser extends Authenticatable implements CanActivateContract, HasMedia
     }
 
     /* ************************ RELATIONS ************************ */
+
+    /* *************************** JWT *************************** */
+
+    // Rest omitted for brevity
+
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey(); 
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 }

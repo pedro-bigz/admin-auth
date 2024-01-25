@@ -2,24 +2,47 @@
 
 namespace Brackets\AdminAuth\Http\Controllers;
 
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 
-class AdminHomepageController extends Controller
+class AdminUserController extends Controller
 {
     /**
-     * Display default admin home page
+     * Guard used for admin user
      *
-     * @return View
+     * @var string
      */
-    public function index(): View
-    {
-        $quote = 'Well begun is half done.';
-        $quoteAuthor = 'Aristotle';
+    protected mixed $guard = 'api';
 
-        return view('brackets/admin-auth::admin.homepage.index', [
-            'quote' => $quote,
-            'quoteAuthor' => $quoteAuthor
-        ]);
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->guard = config('admin-auth.defaults.guard');
+        $this->middleware('auth:api');
+    }
+
+    /**
+     * Get the authenticated User.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function me()
+    {
+        return response()->json(auth()->user());
+    }
+
+    /**
+     * Get the guard to be used during authentication.
+     *
+     * @return StatefulGuard
+     */
+    protected function guard(): StatefulGuard
+    {
+        return auth()->guard($this->guard);
     }
 }

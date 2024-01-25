@@ -4,12 +4,15 @@ namespace Brackets\AdminAuth\Http\Controllers\Auth;
 
 use Brackets\AdminAuth\Http\Controllers\Controller;
 use Brackets\AdminAuth\Traits\AuthenticatesUsers;
+use Exception;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class LoginController extends Controller
 {
@@ -27,25 +30,11 @@ class LoginController extends Controller
     use AuthenticatesUsers;
 
     /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected mixed $redirectTo = '/admin';
-
-    /**
-     * Where to redirect users after logout.
-     *
-     * @var string
-     */
-    protected mixed $redirectToAfterLogout = '/admin/login';
-
-    /**
      * Guard used for admin user
      *
      * @var string
      */
-    protected mixed $guard = 'admin';
+    protected mixed $guard = 'api';
 
     /**
      * Create a new controller instance.
@@ -55,19 +44,7 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->guard = config('admin-auth.defaults.guard');
-        $this->redirectTo = config('admin-auth.login_redirect');
-        $this->redirectToAfterLogout = config('admin-auth.logout_redirect');
-        $this->middleware('guest.admin:' . $this->guard)->except('logout');
-    }
-
-    /**
-     * Show the application's login form.
-     *
-     * @return View
-     */
-    public function showLoginForm(): View
-    {
-        return view('brackets/admin-auth::admin.auth.login');
+        $this->middleware('auth:api')->except('login');
     }
 
     /**
@@ -76,7 +53,7 @@ class LoginController extends Controller
      * @param Request $request
      * @return RedirectResponse
      */
-    public function logout(Request $request): RedirectResponse
+    public function logout(Request $request): JsonResponse
     {
         $this->guard()->logout();
 
@@ -84,7 +61,11 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect($this->redirectToAfterLogout);
+        return response()->json([
+            'success' => true,
+            'status' => 'success',
+            'message' => 'Successfully logged out',
+        ]);
     }
 
     /**
@@ -106,20 +87,6 @@ class LoginController extends Controller
     }
 
     /**
-     * Get the post register / login redirect path.
-     *
-     * @return string
-     */
-    public function redirectAfterLogoutPath(): string
-    {
-        if (method_exists($this, 'redirectToAfterLogout')) {
-            return $this->redirectToAfterLogout();
-        }
-
-        return property_exists($this, 'redirectToAfterLogout') ? $this->redirectToAfterLogout : '/';
-    }
-
-    /**
      * Get the guard to be used during authentication.
      *
      * @return StatefulGuard
@@ -127,5 +94,15 @@ class LoginController extends Controller
     protected function guard(): StatefulGuard
     {
         return Auth::guard($this->guard);
+    }
+
+    /**
+     * Refresh a token.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function refresh()
+    {
+        return $this->respondWithToken($this->guard()->refresh(), 204);
     }
 }

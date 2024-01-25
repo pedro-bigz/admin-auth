@@ -14,17 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 trait AuthenticatesUsers
 {
-    use RedirectsUsers, ThrottlesLogins;
-
-    /**
-     * Show the application's login form.
-     *
-     * @return View
-     */
-    public function showLoginForm(): View
-    {
-        return view('auth.login');
-    }
+    use ThrottlesLogins;
 
     /**
      * Handle a login request to the application.
@@ -48,8 +38,8 @@ trait AuthenticatesUsers
             return $this->sendLockoutResponse($request);
         }
 
-        if ($this->attemptLogin($request)) {
-            return $this->sendLoginResponse($request);
+        if ($token = $this->attemptLogin($request)) {
+            return $this->sendLoginResponse($request, $token);
         }
 
         // If the login attempt was unsuccessful we will increment the number of attempts
@@ -85,7 +75,7 @@ trait AuthenticatesUsers
     protected function attemptLogin(Request $request): bool
     {
         return $this->guard()->attempt(
-            $this->credentials($request), $request->filled('remember')
+            $this->credentials($request)
         );
     }
 
@@ -101,27 +91,6 @@ trait AuthenticatesUsers
     }
 
     /**
-     * Send the response after the user was authenticated.
-     *
-     * @param Request $request
-     * @return Response|RedirectResponse
-     */
-    protected function sendLoginResponse(Request $request): Response|RedirectResponse
-    {
-        $request->session()->regenerate();
-
-        $this->clearLoginAttempts($request);
-
-        if ($response = $this->authenticated($request, $this->guard()->user())) {
-            return $response;
-        }
-
-        return $request->wantsJson()
-            ? new Response('', 204)
-            : redirect()->intended($this->redirectPath());
-    }
-
-    /**
      * The user has been authenticated.
      *
      * @param Request $request
@@ -134,6 +103,48 @@ trait AuthenticatesUsers
             $user->last_login_at = now();
             $user->save();
         }
+    }
+
+    /**
+     * Send the response after the user was authenticated.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    protected function sendLoginResponse(Request $request, string $token): JsonResponse
+    {
+        $request->session()->regenerate();
+
+        $this->clearLoginAttempts($request);
+
+        if ($response = $this->authenticated($request, $this->guard()->user())) {
+            return $response;
+        }
+
+        return $this->respondWithToken($token, 204);
+    }
+
+    /**
+     * Get the token array structure.
+     *
+     * @param  string $token
+     * @param  int $code
+     * @return JsonResponse
+     */
+    protected function respondWithToken(string $token, int $code): JsonResponse
+    {
+        $response = [
+            'access_token' => $token,
+            'token_type' => config('admin-auth.token_type'),
+            'expires_in' => $this->calcTokenExpiration()
+        ];
+
+        return response()->json($response, $code);
+    }
+
+    protected function calcTokenExpiration(): int
+    {
+        return $this->guard()->factory()->getTTL() * 60;
     }
 
     /**
@@ -178,9 +189,7 @@ trait AuthenticatesUsers
             return $response;
         }
 
-        return $request->wantsJson()
-            ? new Response('', 204)
-            : redirect('/');
+        return new Response('', 204);
     }
 
     /**
@@ -201,6 +210,6 @@ trait AuthenticatesUsers
      */
     protected function guard(): StatefulGuard
     {
-        return Auth::guard();
+        return Auth::guard($this->guard);
     }
 }
